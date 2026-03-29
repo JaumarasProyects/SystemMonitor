@@ -100,6 +100,7 @@ class SystemInfo:
                 capture_output=True, text=True, timeout=3
             )
             usage = result.stdout.strip()
+            usage = usage.replace(',', '.')
             if usage and usage.replace('.', '').isdigit():
                 for gpu in gpus:
                     gpu['usage'] = float(usage)

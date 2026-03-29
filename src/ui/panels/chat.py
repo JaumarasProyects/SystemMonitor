@@ -45,6 +45,12 @@ class ChatPanel:
         header.pack(fill="x")
         header.pack_propagate(False)
         
+        self.chat_scroll = ctk.CTkScrollableFrame(self.frame, fg_color="transparent")
+        self.chat_scroll.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        self.chat_container = ctk.CTkFrame(self.chat_scroll, fg_color="transparent")
+        self.chat_container.pack(fill="x", expand=True)
+        
         title = ctk.CTkLabel(header, text="🤖 Chat con IA",
                             font=("Segoe UI Semibold", 16), text_color=self.theme['primary'])
         title.pack(side="left", padx=15, pady=10)
@@ -77,12 +83,6 @@ class ChatPanel:
         self.chat_status = ctk.CTkLabel(controls_frame, text="",
                                         font=("Segoe UI", 10), text_color=self.theme['text_sec'])
         self.chat_status.pack(side="right", padx=10)
-        
-        self.chat_scroll = ctk.CTkScrollableFrame(self.frame, fg_color="transparent")
-        self.chat_scroll.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        self.chat_container = ctk.CTkFrame(self.chat_scroll, fg_color="transparent")
-        self.chat_container.pack(fill="x", expand=True)
         
         self.show_welcome()
         
@@ -180,12 +180,12 @@ class ChatPanel:
         msg_frame = ctk.CTkFrame(self.chat_container, 
                                   fg_color=self.theme['primary'] if is_user else self.theme['bg_sec'],
                                   corner_radius=10)
-        msg_frame.pack(fill="x", pady=4, padx=5, anchor="e" if is_user else "w")
+        msg_frame.pack(fill="x", pady=4, padx=3, anchor="e" if is_user else "w")
         
         label = ctk.CTkLabel(msg_frame, text=message, font=("Segoe UI", 11),
                             text_color=self.theme['bg_main'] if is_user else self.theme['text'],
-                            justify="left", wraplength=340)
-        label.pack(padx=12, pady=8)
+                            justify="left", wraplength=300)
+        label.pack(padx=10, pady=6)
         
         self.chat_scroll._parent_canvas.yview_moveto(1.0)
     

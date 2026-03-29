@@ -180,12 +180,17 @@ class ChatPanel:
         msg_frame = ctk.CTkFrame(self.chat_container, 
                                   fg_color=self.theme['primary'] if is_user else self.theme['bg_sec'],
                                   corner_radius=10)
-        msg_frame.pack(fill="x", pady=4, padx=3, anchor="e" if is_user else "w")
+        msg_frame.pack(fill="x", pady=4, padx=3)
         
-        label = ctk.CTkLabel(msg_frame, text=message, font=("Segoe UI", 11),
-                            text_color=self.theme['bg_main'] if is_user else self.theme['text'],
-                            justify="left", wraplength=340)
-        label.pack(padx=10, pady=6)
+        if is_user:
+            msg_frame.pack(anchor="e")
+        
+        text_widget = ctk.CTkTextbox(msg_frame, font=("Segoe UI", 11),
+                                     fg_color="transparent", text_color=self.theme['bg_main'] if is_user else self.theme['text'],
+                                     border_width=0, wrap="word", height=1)
+        text_widget.insert("1.0", message)
+        text_widget.configure(state="disabled")
+        text_widget.pack(padx=10, pady=6, fill="x", expand=True)
         
         self.chat_scroll._parent_canvas.yview_moveto(1.0)
     

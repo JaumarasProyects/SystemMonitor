@@ -37,7 +37,7 @@ class ChatPanel:
         self.stop_audio_btn = None
     
     def create(self):
-        self.frame = ctk.CTkFrame(self.parent, width=380, fg_color=self.theme['bg_sec'], corner_radius=0)
+        self.frame = ctk.CTkFrame(self.parent, width=420, fg_color=self.theme['bg_sec'], corner_radius=0)
         self.frame.grid(row=0, column=2, sticky="nsew")
         self.frame.grid_propagate(False)
         
@@ -184,7 +184,7 @@ class ChatPanel:
         
         label = ctk.CTkLabel(msg_frame, text=message, font=("Segoe UI", 11),
                             text_color=self.theme['bg_main'] if is_user else self.theme['text'],
-                            justify="left", wraplength=300)
+                            justify="left", wraplength=340)
         label.pack(padx=10, pady=6)
         
         self.chat_scroll._parent_canvas.yview_moveto(1.0)

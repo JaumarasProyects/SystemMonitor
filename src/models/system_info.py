@@ -13,6 +13,11 @@ from typing import List, Dict, Any
 class SystemInfo:
     """Gathers system information using psutil and Windows commands."""
     
+    _gpu_usage_cache = 0
+    _gpu_usage_last_update = 0
+    _gpu_static_cache = None
+    _gpu_static_last_update = 0
+    
     @staticmethod
     def get_cpu_info() -> Dict[str, Any]:
         """Get CPU information."""
@@ -24,8 +29,8 @@ class SystemInfo:
             'freq_current': cpu_freq.current if cpu_freq else 0,
             'freq_max': cpu_freq.max if cpu_freq else 0,
             'freq_min': cpu_freq.min if cpu_freq else 0,
-            'usage': psutil.cpu_percent(interval=0.1),
-            'usage_per_core': psutil.cpu_percent(interval=0.1, percpu=True)
+            'usage': psutil.cpu_percent(interval=None),
+            'usage_per_core': psutil.cpu_percent(interval=None, percpu=True)
         }
     
     @staticmethod
@@ -40,34 +45,16 @@ class SystemInfo:
     
     @staticmethod
     def get_gpu_info() -> List[Dict[str, Any]]:
-        """Get GPU information."""
+        """Get GPU information with caching for performance."""
         import json
-        gpus = []
+        import time
         
-        try:
-            result = subprocess.run(
-                ['wmic', 'path', 'win32_VideoController', 'get', 
-                 'name,adapterram,driverversion,currenthorizontalresolution,currentverticalresolution,status'],
-                capture_output=True, text=True, timeout=5
-            )
-            lines = result.stdout.strip().split('\n')
-            if len(lines) > 1:
-                for i in range(1, len(lines)):
-                    if lines[i].strip():
-                        parts = lines[i].strip().split()
-                        if len(parts) >= 2:
-                            gpu_name = ' '.join(parts[:-5]) if len(parts) > 5 else ' '.join(parts)
-                            gpus.append({
-                                'name': gpu_name,
-                                'memory': ' '.join(parts[-5:-4]) if len(parts) > 5 else 'N/A',
-                                'driver': ' '.join(parts[-4:-3]) if len(parts) > 5 else 'N/A',
-                                'resolution': ' '.join(parts[-3:-1]) if len(parts) > 5 else 'N/A',
-                                'status': parts[-1] if parts else 'N/A'
-                            })
-        except:
-            pass
+        current_time = time.time()
         
-        if not gpus:
+        if SystemInfo._gpu_static_cache and (current_time - SystemInfo._gpu_static_last_update) < 30:
+            gpus = SystemInfo._gpu_static_cache
+        else:
+            gpus = []
             try:
                 result = subprocess.run(
                     ['powershell', '-Command', 
@@ -92,22 +79,32 @@ class SystemInfo:
                         })
             except:
                 pass
+            
+            if not gpus:
+                gpus = [{'name': 'No detectada', 'memory_gb': 0, 'driver': 'N/A', 'resolution': 'N/A', 'status': 'N/A', 'usage': 0}]
+            else:
+                SystemInfo._gpu_static_cache = gpus.copy()
+                SystemInfo._gpu_static_last_update = current_time
         
-        try:
-            result = subprocess.run(
-                ['powershell', '-Command', 
-                 "(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine | Measure-Object -Property UtilizationPercentage -Average).Average"],
-                capture_output=True, text=True, timeout=3
-            )
-            usage = result.stdout.strip()
-            usage = usage.replace(',', '.')
-            if usage and usage.replace('.', '').isdigit():
-                for gpu in gpus:
-                    gpu['usage'] = float(usage)
-        except:
-            pass
+        if (current_time - SystemInfo._gpu_usage_last_update) >= 1:
+            try:
+                result = subprocess.run(
+                    ['powershell', '-Command', 
+                     "(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine | Measure-Object -Property UtilizationPercentage -Average).Average"],
+                    capture_output=True, text=True, timeout=3
+                )
+                usage = result.stdout.strip()
+                usage = usage.replace(',', '.')
+                if usage and usage.replace('.', '').replace('-', '').isdigit():
+                    SystemInfo._gpu_usage_cache = float(usage)
+                    SystemInfo._gpu_usage_last_update = current_time
+            except:
+                pass
         
-        return gpus if gpus else [{'name': 'No detectada', 'memory_gb': 0, 'driver': 'N/A', 'resolution': 'N/A', 'status': 'N/A', 'usage': 0}]
+        for gpu in gpus:
+            gpu['usage'] = SystemInfo._gpu_usage_cache
+        
+        return gpus
     
     @staticmethod
     def get_memory_info() -> Dict[str, Any]:

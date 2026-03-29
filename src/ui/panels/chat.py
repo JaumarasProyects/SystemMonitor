@@ -110,26 +110,55 @@ class ChatPanel:
     
     def show_welcome(self):
         for widget in self.chat_container.winfo_children():
-            widget.destroy()
+            try:
+                widget.destroy()
+            except (AttributeError, RuntimeError):
+                pass
         
         welcome = ctk.CTkFrame(self.chat_container, fg_color=self.theme['bg_sec'], corner_radius=10)
         welcome.pack(fill="x", pady=5, padx=5)
         
-        msg = ctk.CTkLabel(welcome, text="👋 ¡Bienvenido al Chat de IA!\n\n"
-                                          "Puedo ayudarte a analizar los datos de tu sistema.\n\n"
-                                          "Cada panel ya tiene datos que puedo interpretar:\n"
-                                          "• Dashboard: Resumen general\n"
-                                          "• Sistema: CPU, GPU, placa base\n"
-                                          "• Memoria: RAM y almacenamiento\n"
-                                          "• Procesos: Aplicaciones en ejecución\n"
-                                          "• Red: Conexiones de red\n"
-                                          "• Puertos: Servicios de red\n"
-                                          "• Software: Programas instalados\n"
-                                          "• Cachés: Datos de navegadores\n"
-                                          "• Análisis IA: Informes del LLM",
-                                          font=("Segoe UI", 11), text_color=self.theme['text'],
-                                          justify="left", wraplength=340)
-        msg.pack(padx=12, pady=12)
+        msg = ctk.CTkTextbox(welcome, font=("Segoe UI", 11), 
+                             fg_color="transparent", text_color=self.theme['text'],
+                             border_width=0, wrap="word", height=200)
+        msg.insert("1.0", "👋 ¡Bienvenido al Chat de IA!\n\n"
+                          "Puedo ayudarte a analizar los datos de tu sistema.\n\n"
+                          "Cada panel ya tiene datos que puedo interpretar:\n"
+                          "• Dashboard: Resumen general\n"
+                          "• Sistema: CPU, GPU, placa base\n"
+                          "• Memoria: RAM y almacenamiento\n"
+                          "• Procesos: Aplicaciones en ejecución\n"
+                          "• Red: Conexiones de red\n"
+                          "• Puertos: Servicios de red\n"
+                          "• Software: Programas instalados\n"
+                          "• Cachés: Datos de navegadores\n"
+                          "• Análisis IA: Informes del LLM")
+        msg.configure(state="disabled")
+        msg.pack(fill="x", padx=10, pady=12)
+    
+    def refresh(self):
+        theme = self.app.theme_manager.theme
+        self.theme = theme
+        
+        self.frame.configure(fg_color=theme['bg_sec'])
+        
+        for widget in self.frame.winfo_children():
+            try:
+                if hasattr(widget, 'configure'):
+                    widget.configure(fg_color=theme['bg_sec'])
+            except (AttributeError, RuntimeError):
+                pass
+        
+        for widget in self.chat_container.winfo_children():
+            try:
+                widget.configure(fg_color=theme['bg_sec'])
+            except (AttributeError, RuntimeError):
+                pass
+        
+        if hasattr(self, 'chat_input') and self.chat_input:
+            self.chat_input.configure(fg_color=theme['bg_card'], text_color=theme['text'])
+        if hasattr(self, 'send_btn') and self.send_btn:
+            self.send_btn.configure(fg_color=theme['primary'])
     
     def update_ui(self):
         if self.ollama_connected and self.ollama_models:

@@ -25,8 +25,10 @@ class SystemMonitorApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.theme_manager = ThemeManager()
         self.settings = Settings()
+        saved_theme = self.settings.get('theme', 'dark') or 'dark'
+        self.theme_manager = ThemeManager(saved_theme)
+        self.settings.set('theme', self.theme_manager.theme_name)
         
         ctk.set_appearance_mode(self.theme_manager.theme_name)
         ctk.set_default_color_theme("blue")
@@ -117,6 +119,7 @@ class SystemMonitorApp(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         
+        self.sidebar_header = None
         self.setup_sidebar_header()
         self.setup_nav_buttons()
         
@@ -133,19 +136,22 @@ class SystemMonitorApp(ctk.CTk):
         self.show_panel('dashboard')
     
     def setup_sidebar_header(self):
-        title_label = ctk.CTkLabel(
-            self.sidebar, text="SystemMonitor",
+        self.sidebar_header = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        self.sidebar_header.pack(pady=(20, 10))
+        
+        self.sidebar_title = ctk.CTkLabel(
+            self.sidebar_header, text="SystemMonitor",
             font=("Segoe UI Semibold", 22), 
             text_color=self.theme_manager.theme['primary']
         )
-        title_label.pack(pady=(20, 10))
+        self.sidebar_title.pack()
         
-        subtitle = ctk.CTkLabel(
-            self.sidebar, text="Monitor del Sistema",
+        self.sidebar_subtitle = ctk.CTkLabel(
+            self.sidebar_header, text="Monitor del Sistema",
             font=("Segoe UI", 11), 
             text_color=self.theme_manager.theme['text_sec']
         )
-        subtitle.pack(pady=(0, 30))
+        self.sidebar_subtitle.pack(pady=(0, 20))
     
     def setup_nav_buttons(self):
         nav_items = [
@@ -161,6 +167,9 @@ class SystemMonitorApp(ctk.CTk):
             ("⚙️", "Configuración", "settings"),
         ]
         
+        self.nav_buttons = []
+        self.nav_button_refs = {}
+        
         for icon, text, panel_id in nav_items:
             btn = ctk.CTkButton(
                 self.sidebar, text=f"  {icon}  {text}",
@@ -173,6 +182,7 @@ class SystemMonitorApp(ctk.CTk):
             )
             btn.pack(fill="x", padx=10, pady=3)
             self.nav_buttons.append(btn)
+            self.nav_button_refs[panel_id] = btn
     
     def setup_footer(self):
         self.footer = ctk.CTkFrame(
@@ -265,19 +275,58 @@ class SystemMonitorApp(ctk.CTk):
     
     def clear_content(self):
         for widget in self.content_frame.winfo_children():
-            widget.destroy()
+            try:
+                widget.destroy()
+            except (AttributeError, RuntimeError):
+                pass
     
     def toggle_theme(self):
         new_theme = "light" if self.theme_manager.theme_name == "dark" else "dark"
         self.theme_manager.switch_theme(new_theme)
+        self.settings.set('theme', new_theme)
         ctk.set_appearance_mode(new_theme)
         
-        for panel in self.panels.values():
-            if hasattr(panel, 'theme'):
-                panel.theme = self.theme_manager.theme
+        self.refresh_sidebar()
+        
+        if 'chat' in self.panels and hasattr(self.panels['chat'], 'refresh'):
+            self.panels['chat'].frame.destroy()
+            self.panels['chat'].create()
+        
+        for panel_id in list(self.panels.keys()):
+            if panel_id != 'chat':
+                del self.panels[panel_id]
         
         if self.current_panel:
             self.show_panel(self.current_panel)
+    
+    def refresh_sidebar(self):
+        theme = self.theme_manager.theme
+        
+        self.sidebar.configure(fg_color=theme['bg_sec'])
+        self.footer.configure(fg_color=theme['bg_sec'])
+        
+        if hasattr(self, 'sidebar_title'):
+            self.sidebar_title.configure(text_color=theme['primary'])
+        if hasattr(self, 'sidebar_subtitle'):
+            self.sidebar_subtitle.configure(text_color=theme['text_sec'])
+        
+        for btn in self.nav_buttons:
+            btn.configure(
+                text_color=theme['text'],
+                hover_color=theme['hover'],
+                fg_color="transparent"
+            )
+        
+        panel_map = {
+            'dashboard': 0, 'system': 1, 'memory': 2, 'processes': 3,
+            'network': 4, 'ports': 5, 'software': 6, 'caches': 7,
+            'analysis': 8, 'settings': 9
+        }
+        
+        if self.current_panel and self.current_panel in panel_map:
+            self.nav_buttons[panel_map[self.current_panel]].configure(
+                fg_color=theme['bg_card']
+            )
     
     def refresh_panels(self):
         for panel in self.panels.values():

@@ -20,42 +20,58 @@ class CachesPanel:
     def create(self, nav_buttons):
         self.frame = ctk.CTkFrame(self.parent, fg_color="transparent")
         
-        title = ctk.CTkLabel(
-            self.frame, text="Caches y Cookies de Navegadores",
+        self.header_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
+        self.header_frame.pack(fill="x", padx=20, pady=(20, 0))
+        
+        self.back_btn = ctk.CTkButton(
+            self.header_frame, text="← Volver", width=100, height=32,
+            fg_color=self.theme['bg_card'], command=self.show_caches_view,
+            state="disabled"
+        )
+        self.back_btn.pack(side="left", padx=(0, 10))
+        self.back_btn.pack_forget()
+        
+        self.title_label = ctk.CTkLabel(
+            self.header_frame, text="Caches y Cookies de Navegadores",
             font=("Segoe UI Semibold", 24), text_color=self.theme['text']
         )
-        title.pack(anchor="w", padx=25, pady=(20, 10))
+        self.title_label.pack(side="left")
         
-        subtitle = ctk.CTkLabel(
+        self.subtitle_label = ctk.CTkLabel(
             self.frame, text="Gestiona el almacenamiento local de los navegadores web",
             font=("Segoe UI", 12), text_color=self.theme['text_sec']
         )
-        subtitle.pack(anchor="w", padx=25, pady=(0, 15))
+        self.subtitle_label.pack(anchor="w", padx=20, pady=(5, 15))
         
-        controls_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
-        controls_frame.pack(fill="x", padx=20, pady=(0, 15))
+        self.controls_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
+        self.controls_frame.pack(fill="x", padx=20, pady=(0, 15))
         
         self.refresh_caches_btn = ctk.CTkButton(
-            controls_frame, text="Actualizar", font=("Segoe UI", 12),
+            self.controls_frame, text="Actualizar", font=("Segoe UI", 12),
             height=36, fg_color=self.theme['bg_card'],
             command=self.load_browser_caches
         )
         self.refresh_caches_btn.pack(side="left", padx=(0, 10))
         
         self.clear_all_btn = ctk.CTkButton(
-            controls_frame, text="Limpiar Todo", font=("Segoe UI Semibold", 12),
+            self.controls_frame, text="Limpiar Todo", font=("Segoe UI Semibold", 12),
             height=36, fg_color=self.theme['secondary'],
             hover_color='#c73a52',
             command=self.clear_all_caches
         )
         self.clear_all_btn.pack(side="left")
         
-        self.cache_status_label = ctk.CTkLabel(controls_frame, text="",
+        self.cache_status_label = ctk.CTkLabel(self.controls_frame, text="",
                                                font=("Segoe UI", 11), text_color=self.theme['text_sec'])
         self.cache_status_label.pack(side="left", padx=15)
         
-        self.cache_scroll = ctk.CTkScrollableFrame(self.frame, fg_color="transparent")
-        self.cache_scroll.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        self.caches_container = ctk.CTkFrame(self.frame, fg_color="transparent")
+        self.caches_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        
+        self.cache_scroll = ctk.CTkScrollableFrame(self.caches_container, fg_color="transparent")
+        self.cache_scroll.pack(fill="both", expand=True)
+        
+        self.cookies_container = ctk.CTkFrame(self.caches_container, fg_color="transparent")
         
         self.load_browser_caches()
         
@@ -284,91 +300,101 @@ class CachesPanel:
                          'cookies': b['cookies_count']} for b in browsers]
         })
     
+    def show_caches_view(self):
+        self.title_label.configure(text="Caches y Cookies de Navegadores")
+        self.subtitle_label.configure(text="Gestiona el almacenamiento local de los navegadores web")
+        self.back_btn.pack_forget()
+        
+        self.cookies_container.pack_forget()
+        self.cache_scroll.pack(fill="both", expand=True)
+        
+        self.refresh_caches_btn.pack(side="left", padx=(0, 10))
+        self.clear_all_btn.pack(side="left")
+    
+    def show_cookies_view(self, browser):
+        self.current_browser = browser
+        
+        self.title_label.configure(text=f"Cookies - {browser['name']}")
+        self.subtitle_label.configure(text=f"{browser['cookies_count']} cookies encontradas")
+        self.back_btn.pack(side="left", padx=(0, 10))
+        
+        self.cache_scroll.pack_forget()
+        self.refresh_caches_btn.pack_forget()
+        self.clear_all_btn.pack_forget()
+        
+        for widget in self.cookies_container.winfo_children():
+            widget.destroy()
+        
+        self.cookies_container.pack(fill="both", expand=True)
+        
+        search_frame = ctk.CTkFrame(self.cookies_container, fg_color=self.theme['bg_card'], corner_radius=10)
+        search_frame.pack(fill="x", pady=(0, 15))
+        
+        self.cookies_search_entry = ctk.CTkEntry(search_frame, placeholder_text="Buscar cookies...",
+                                    font=("Segoe UI", 12), height=40)
+        self.cookies_search_entry.pack(fill="x", padx=15, pady=10)
+        self.cookies_search_entry.bind("<KeyRelease>", lambda e: self.filter_cookies())
+        
+        self.cookies_scroll = ctk.CTkScrollableFrame(self.cookies_container, fg_color="transparent")
+        self.cookies_scroll.pack(fill="both", expand=True)
+        
+        self.filter_cookies()
+    
+    def filter_cookies(self):
+        for widget in self.cookies_scroll.winfo_children():
+            widget.destroy()
+        
+        browser = getattr(self, 'current_browser', None)
+        if not browser:
+            return
+        
+        cookies = browser.get('cookies', [])
+        if not cookies:
+            ctk.CTkLabel(self.cookies_scroll, text="No se pudieron leer las cookies",
+                        font=("Segoe UI", 12), text_color=self.theme['text_sec']).pack(pady=20)
+            return
+        
+        search_text = self.cookies_search_entry.get().lower() if hasattr(self, 'cookies_search_entry') else ""
+        filtered = cookies
+        if search_text:
+            filtered = [c for c in cookies if search_text in c['host'].lower() or search_text in c['name'].lower()]
+        
+        if not filtered:
+            ctk.CTkLabel(self.cookies_scroll, text=f"No se encontraron cookies para '{search_text}'",
+                        font=("Segoe UI", 12), text_color=self.theme['text_sec']).pack(pady=20)
+            return
+        
+        for i, cookie in enumerate(filtered[:100]):
+            cookie_frame = ctk.CTkFrame(self.cookies_scroll, fg_color=self.theme['bg_card'], corner_radius=8)
+            cookie_frame.pack(fill="x", pady=3)
+            
+            host_text = cookie['host']
+            if cookie['secure']:
+                host_text = "🔒 " + host_text
+            if cookie['http_only']:
+                host_text += " [HTTP]"
+            
+            ctk.CTkLabel(cookie_frame, text=host_text,
+                        font=("Segoe UI Semibold", 11), text_color=self.theme['primary']).pack(anchor="w", padx=12, pady=(8, 2))
+            
+            name_text = f"Nombre: {cookie['name']}"
+            ctk.CTkLabel(cookie_frame, text=name_text,
+                        font=("Consolas", 10), text_color=self.theme['text']).pack(anchor="w", padx=12, pady=1)
+            
+            if cookie['value']:
+                value_text = f"Valor: {cookie['value']}"
+                ctk.CTkLabel(cookie_frame, text=value_text,
+                            font=("Consolas", 9), text_color=self.theme['text_sec']).pack(anchor="w", padx=12, pady=(0, 8))
+            else:
+                ctk.CTkLabel(cookie_frame, text="Valor: (vacio)",
+                            font=("Consolas", 9), text_color=self.theme['text_sec']).pack(anchor="w", padx=12, pady=(0, 8))
+        
+        if len(filtered) > 100:
+            ctk.CTkLabel(self.cookies_scroll, text=f"Mostrando 100 de {len(filtered)} cookies",
+                        font=("Segoe UI", 10), text_color=self.theme['text_sec']).pack(pady=10)
+    
     def show_cookies_dialog(self, browser):
-        dialog = ctk.CTkToplevel(self.frame)
-        dialog.title(f"Cookies - {browser['name']}")
-        dialog.geometry("800x600")
-        dialog.transient(self.frame)
-        
-        dialog.grid_rowconfigure(1, weight=1)
-        dialog.grid_columnconfigure(0, weight=1)
-        
-        header_frame = ctk.CTkFrame(dialog, height=50, fg_color=self.theme['bg_sec'])
-        header_frame.grid(row=0, column=0, sticky="ew")
-        header_frame.grid_propagate(False)
-        
-        ctk.CTkLabel(header_frame, text=f"Cookies de {browser['name']} ({browser['cookies_count']} total)",
-                    font=("Segoe UI Semibold", 14), text_color=self.theme['primary']).pack(side="left", padx=15, pady=10)
-        
-        search_frame = ctk.CTkFrame(dialog, fg_color=self.theme['bg_sec'])
-        search_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
-        
-        search_entry = ctk.CTkEntry(search_frame, placeholder_text="Buscar cookies...",
-                                    font=("Segoe UI", 12))
-        search_entry.pack(fill="x", padx=10, pady=10)
-        
-        cookies_container = ctk.CTkScrollableFrame(dialog, fg_color="transparent")
-        cookies_container.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
-        cookies_container.grid_columnconfigure(0, weight=1)
-        
-        def filter_cookies(search_text=""):
-            for widget in cookies_container.winfo_children():
-                widget.destroy()
-            
-            cookies = browser.get('cookies', [])
-            if not cookies:
-                ctk.CTkLabel(cookies_container, text="No se pudieron leer las cookies",
-                            font=("Segoe UI", 12), text_color=self.theme['text_sec']).pack(pady=20)
-                return
-            
-            filtered = cookies
-            if search_text:
-                search_text = search_text.lower()
-                filtered = [c for c in cookies if search_text in c['host'].lower() or search_text in c['name'].lower()]
-            
-            if not filtered:
-                ctk.CTkLabel(cookies_container, text=f"No se encontraron cookies para '{search_text}'",
-                            font=("Segoe UI", 12), text_color=self.theme['text_sec']).pack(pady=20)
-                return
-            
-            for i, cookie in enumerate(filtered[:100]):
-                cookie_frame = ctk.CTkFrame(cookies_container, fg_color=self.theme['bg_card'], corner_radius=8)
-                cookie_frame.pack(fill="x", pady=3)
-                
-                host_text = cookie['host']
-                if cookie['secure']:
-                    host_text = "🔒 " + host_text
-                if cookie['http_only']:
-                    host_text += " [HTTP]"
-                
-                ctk.CTkLabel(cookie_frame, text=host_text,
-                            font=("Segoe UI Semibold", 11), text_color=self.theme['primary']).pack(anchor="w", padx=12, pady=(8, 2))
-                
-                name_text = f"Nombre: {cookie['name']}"
-                ctk.CTkLabel(cookie_frame, text=name_text,
-                            font=("Consolas", 10), text_color=self.theme['text']).pack(anchor="w", padx=12, pady=1)
-                
-                if cookie['value']:
-                    value_text = f"Valor: {cookie['value']}"
-                    ctk.CTkLabel(cookie_frame, text=value_text,
-                                font=("Consolas", 9), text_color=self.theme['text_sec']).pack(anchor="w", padx=12, pady=(0, 8))
-                else:
-                    ctk.CTkLabel(cookie_frame, text="Valor: (vacio)",
-                                font=("Consolas", 9), text_color=self.theme['text_sec']).pack(anchor="w", padx=12, pady=(0, 8))
-            
-            if len(filtered) > 100:
-                ctk.CTkLabel(cookies_container, text=f"Mostrando 100 de {len(filtered)} cookies",
-                            font=("Segoe UI", 10), text_color=self.theme['text_sec']).pack(pady=10)
-        
-        def on_search(*args):
-            filter_cookies(search_entry.get())
-        
-        search_entry.bind("<KeyRelease>", on_search)
-        
-        filter_cookies("")
-        
-        close_btn = ctk.CTkButton(dialog, text="Cerrar", command=dialog.destroy)
-        close_btn.grid(row=3, column=0, pady=10)
+        self.show_cookies_view(browser)
     
     def clear_browser_cache(self, browser):
         try:

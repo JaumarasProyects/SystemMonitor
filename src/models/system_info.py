@@ -90,7 +90,7 @@ class SystemInfo:
             try:
                 result = subprocess.run(
                     ['powershell', '-Command', 
-                     "(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine | Measure-Object -Property UtilizationPercentage -Average).Average"],
+                     "(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine | Measure-Object -Property UtilizationPercentage -Maximum).Maximum"],
                     capture_output=True, text=True, timeout=3
                 )
                 usage = result.stdout.strip()

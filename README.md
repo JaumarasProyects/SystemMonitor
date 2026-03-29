@@ -68,7 +68,20 @@ SystemMonitor is a comprehensive desktop application that provides real-time sys
 
 - Windows 10/11
 - Python 3.10+
-- [Ollama](https://ollama.ai/) (for AI features)
+
+### AI Features
+
+SystemMonitor uses **Ollama by default** for AI-powered analysis and chat. Ollama runs locally on your machine, so no data leaves your computer.
+
+**Optional**: If you prefer cloud-based LLMs, you can configure API keys for:
+- OpenAI (GPT-4, GPT-4o)
+- DeepSeek
+- Anthropic (Claude)
+- Google Gemini
+- Groq
+- Grok (xAI)
+- Mistral
+- Azure OpenAI
 
 ### Python Dependencies
 
@@ -98,17 +111,56 @@ cd SystemMonitor
 pip install -r requirements.txt
 ```
 
-3. (Optional) Install Ollama for AI features:
-```bash
-# Download from https://ollama.ai
-# Then pull a model:
-ollama pull llama3.2
-```
-
-4. Run the application:
+3. Run the application:
 ```bash
 python src/main.py
 ```
+
+### Setting Up Ollama (Recommended for AI Features)
+
+Ollama runs AI models locally on your machine. To enable AI analysis and chat:
+
+1. Download and install Ollama from [ollama.ai](https://ollama.ai)
+
+2. Start the Ollama service:
+```bash
+ollama serve
+```
+
+3. Pull a model (e.g., Llama 3.2):
+```bash
+ollama pull llama3.2
+```
+
+4. Available models you can use:
+```bash
+ollama pull llama3.2    # General purpose
+ollama pull mistral     # Fast and efficient
+ollama pull phi3       # Lightweight
+ollama pull codellama   # Code-focused
+```
+
+### Setting Up Cloud LLM APIs (Alternative)
+
+If you prefer cloud-based models, configure API keys in the Settings panel:
+
+1. Go to "Configuración" panel
+2. Select your LLM provider
+3. Enter your API key for that service
+
+Supported providers:
+| Provider | Models | API Key Location |
+|----------|--------|------------------|
+| OpenAI | GPT-4, GPT-4o | platform.openai.com |
+| DeepSeek | DeepSeek Chat | platform.deepseek.com |
+| Anthropic | Claude 3.5 | console.anthropic.com |
+| Google | Gemini Pro | aistudio.google.com |
+| Groq | Llama, Mixtral | console.groq.com |
+| Grok | Grok-2 | console.x.ai |
+| Mistral | Mistral Large | console.mistral.ai |
+| Azure | GPT-4 | Azure Portal |
+
+**Note**: When using cloud APIs, your data is sent to the respective provider's servers.
 
 Or use the provided batch file:
 ```bash
@@ -171,9 +223,9 @@ All hardware information is displayed in organized cards. Data includes:
 4. Use "Limpiar" buttons to clear cache or cookies
 
 ### AI Analysis
-1. Ensure Ollama is running (`ollama serve`)
-2. Go to "Análisis IA" panel
-3. Select a model from the dropdown
+1. Go to "Análisis IA" panel
+2. **With Ollama** (default): Ensure Ollama is running, select a model from the dropdown
+3. **With Cloud APIs**: Select provider in Settings, enter API key
 4. Click "Análisis General" or "Seguridad"
 5. Wait for the AI analysis to complete
 
@@ -210,6 +262,11 @@ Configure TTS voice, rate, and volume in the chat panel.
 - Ensure Ollama is running: `ollama serve`
 - Check if models are installed: `ollama list`
 - Pull a model if needed: `ollama pull llama3.2`
+
+### Cloud API Issues
+- Verify API key is correctly entered in Settings
+- Check your API key has available credits/quota
+- Some providers may require additional configuration (Azure endpoint, etc.)
 
 ### Permission Errors
 Some features require administrator privileges:

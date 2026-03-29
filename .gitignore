@@ -1,10 +1,36 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
-.venv/
+*.egg
+dist/
+build/
+
+# Virtual environments
 venv/
-*.log
+.venv/
+env/
+.env/
+
+# OS
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
 nul
+
+# Temp files
 *.mp3
+temp_*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.settings.json

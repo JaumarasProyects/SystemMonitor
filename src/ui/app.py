@@ -37,6 +37,7 @@ class SystemMonitorApp(ctk.CTk):
         
         self.cpu_history = deque(maxlen=60)
         self.ram_history = deque(maxlen=60)
+        self.gpu_history = deque(maxlen=60)
         
         self.system_info = SystemInfo()
         self.llm_service = LLMService()
@@ -88,15 +89,19 @@ class SystemMonitorApp(ctk.CTk):
         for _ in range(60):
             cpu = self.system_info.get_cpu_info()['usage']
             ram = self.system_info.get_memory_info()['percent']
+            gpu = self.system_info.get_gpu_info()[0].get('usage', 0) if self.system_info.get_gpu_info() else 0
             self.cpu_history.append(cpu)
             self.ram_history.append(ram)
+            self.gpu_history.append(gpu)
     
     def background_update(self):
         while self.update_running:
             cpu = self.system_info.get_cpu_info()['usage']
             ram = self.system_info.get_memory_info()['percent']
+            gpu = self.system_info.get_gpu_info()[0].get('usage', 0) if self.system_info.get_gpu_info() else 0
             self.cpu_history.append(cpu)
             self.ram_history.append(ram)
+            self.gpu_history.append(gpu)
             time.sleep(1)
     
     def setup_ui(self):

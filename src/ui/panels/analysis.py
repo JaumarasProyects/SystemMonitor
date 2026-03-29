@@ -176,9 +176,9 @@ class AnalysisPanel:
                     'model': model,
                     'prompt': prompt,
                     'stream': False,
-                    'options': {'temperature': 0.7, 'num_predict': 2000}
+                    'options': {'temperature': 0.3, 'num_predict': 8192}
                 },
-                timeout=120
+                timeout=180
             )
             
             self.frame.after(10, lambda: self.analysis_progress.set(0.8))

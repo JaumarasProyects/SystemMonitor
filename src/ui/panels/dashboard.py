@@ -20,16 +20,20 @@ class DashboardPanel:
         
         self.cpu_history = app_ref.cpu_history
         self.ram_history = app_ref.ram_history
+        self.gpu_history = app_ref.gpu_history
         
         self.cpu_card = None
         self.ram_card = None
+        self.gpu_card = None
         self.disk_card = None
         self.net_card = None
         
         self.canvas_cpu = None
         self.canvas_ram = None
+        self.canvas_gpu = None
         self.ax_cpu = None
         self.ax_ram = None
+        self.ax_gpu = None
     
     def create(self, nav_buttons):
         self.frame = ctk.CTkFrame(self.parent, fg_color="transparent")
@@ -44,7 +48,7 @@ class DashboardPanel:
         
         cards_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
         cards_frame.pack(fill="x", padx=20, pady=(0, 15))
-        cards_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        cards_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         
         self.cpu_card = InfoCard(cards_frame, self.theme, "CPU", "0%", "Procesador")
         self.cpu_card.grid(row=0, column=0, padx=5)
@@ -52,29 +56,40 @@ class DashboardPanel:
         self.ram_card = InfoCard(cards_frame, self.theme, "RAM", "0%", "Memoria")
         self.ram_card.grid(row=0, column=1, padx=5)
         
+        self.gpu_card = InfoCard(cards_frame, self.theme, "GPU", "0%", "Graficos")
+        self.gpu_card.grid(row=0, column=2, padx=5)
+        
         self.disk_card = InfoCard(cards_frame, self.theme, "Disco C:", "0%", "Almacenamiento")
-        self.disk_card.grid(row=0, column=2, padx=5)
+        self.disk_card.grid(row=0, column=3, padx=5)
         
         self.net_card = InfoCard(cards_frame, self.theme, "Red", "Activa", "Conexion")
-        self.net_card.grid(row=0, column=3, padx=5)
+        self.net_card.grid(row=0, column=4, padx=5)
         
         charts_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
         charts_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         charts_frame.grid_columnconfigure(0, weight=1)
         charts_frame.grid_columnconfigure(1, weight=1)
+        charts_frame.grid_columnconfigure(2, weight=1)
         charts_frame.grid_rowconfigure(0, weight=1)
         
         from ui.components import ChartFrame
         
         cpu_chart_frame = ChartFrame(charts_frame, self.theme)
-        cpu_chart_frame.grid(row=0, column=0, padx=(0, 7), sticky="nsew")
+        cpu_chart_frame.grid(row=0, column=0, padx=(0, 5), sticky="nsew")
+        
+        gpu_chart_frame = ChartFrame(charts_frame, self.theme)
+        gpu_chart_frame.grid(row=0, column=1, padx=5, sticky="nsew")
         
         ram_chart_frame = ChartFrame(charts_frame, self.theme)
-        ram_chart_frame.grid(row=0, column=1, padx=(7, 0), sticky="nsew")
+        ram_chart_frame.grid(row=0, column=2, padx=(5, 0), sticky="nsew")
         
         self.fig_cpu = Figure(figsize=(4, 3), facecolor=self.theme['bg_card'])
         self.ax_cpu = self.fig_cpu.add_subplot(111)
         self.ax_cpu.set_facecolor(self.theme['bg_card'])
+        
+        self.fig_gpu = Figure(figsize=(4, 3), facecolor=self.theme['bg_card'])
+        self.ax_gpu = self.fig_gpu.add_subplot(111)
+        self.ax_gpu.set_facecolor(self.theme['bg_card'])
         
         self.fig_ram = Figure(figsize=(4, 3), facecolor=self.theme['bg_card'])
         self.ax_ram = self.fig_ram.add_subplot(111)
@@ -82,6 +97,9 @@ class DashboardPanel:
         
         self.canvas_cpu = FigureCanvasTkAgg(self.fig_cpu, master=cpu_chart_frame)
         self.canvas_cpu.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
+        
+        self.canvas_gpu = FigureCanvasTkAgg(self.fig_gpu, master=gpu_chart_frame)
+        self.canvas_gpu.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
         
         self.canvas_ram = FigureCanvasTkAgg(self.fig_ram, master=ram_chart_frame)
         self.canvas_ram.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
@@ -94,11 +112,15 @@ class DashboardPanel:
         try:
             cpu_info = self.system_info.get_cpu_info()
             mem_info = self.system_info.get_memory_info()
+            gpu_info = self.system_info.get_gpu_info()
             disk_info = self.system_info.get_disk_info()
             net_info = self.system_info.get_network_info()
             
             self.cpu_card.value_label.configure(text=f"{cpu_info['usage']:.1f}%")
             self.ram_card.value_label.configure(text=f"{mem_info['percent']:.1f}%")
+            
+            gpu_usage = gpu_info[0].get('usage', 0) if gpu_info else 0
+            self.gpu_card.value_label.configure(text=f"{gpu_usage:.1f}%")
             
             disk_c = next((d for d in disk_info if 'C:' in d['device']), disk_info[0] if disk_info else None)
             if disk_c:
@@ -132,6 +154,22 @@ class DashboardPanel:
         self.ax_cpu.spines['right'].set_visible(False)
         
         self.canvas_cpu.draw()
+        
+        self.ax_gpu.clear()
+        self.ax_gpu.set_facecolor(self.theme['bg_card'])
+        
+        gpu_list = list(self.gpu_history)
+        self.ax_gpu.plot(gpu_list, color=self.theme['success'], linewidth=2)
+        self.ax_gpu.fill_between(range(len(gpu_list)), gpu_list, alpha=0.3, color=self.theme['success'])
+        self.ax_gpu.set_ylim(0, 100)
+        self.ax_gpu.set_title('GPU %', color=self.theme['text'], fontsize=10)
+        self.ax_gpu.tick_params(colors=self.theme['text_sec'], labelsize=8)
+        self.ax_gpu.spines['bottom'].set_color(self.theme['border'])
+        self.ax_gpu.spines['left'].set_color(self.theme['border'])
+        self.ax_gpu.spines['top'].set_visible(False)
+        self.ax_gpu.spines['right'].set_visible(False)
+        
+        self.canvas_gpu.draw()
         
         self.ax_ram.clear()
         self.ax_ram.set_facecolor(self.theme['bg_card'])

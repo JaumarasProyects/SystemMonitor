@@ -185,9 +185,15 @@ class ChatPanel:
         if is_user:
             msg_frame.pack(anchor="e")
         
-        text_widget = ctk.CTkTextbox(msg_frame, font=("Segoe UI", 11),
-                                     fg_color="transparent", text_color=self.theme['bg_main'] if is_user else self.theme['text'],
-                                     border_width=0, wrap="word")
+        if is_user:
+            text_widget = ctk.CTkTextbox(msg_frame, font=("Segoe UI", 11),
+                                         fg_color="transparent", text_color=self.theme['bg_main'],
+                                         border_width=0, wrap="word", height=90)
+        else:
+            text_widget = ctk.CTkTextbox(msg_frame, font=("Segoe UI", 11),
+                                         fg_color="transparent", text_color=self.theme['text'],
+                                         border_width=0, wrap="word")
+        
         text_widget.insert("1.0", message)
         text_widget.configure(state="disabled")
         text_widget.pack(padx=10, pady=6, fill="both", expand=True)
@@ -244,7 +250,7 @@ Si el usuario pregunta sobre acciones específicas, proporciona comandos concret
             if context:
                 system_context += f"\n\nDatos disponibles del sistema del usuario:\n\n{context}"
             
-            self.frame.after(0, lambda: self.add_message("Pensando...", is_user=False))
+            self.frame.after(0, lambda: self.add_thinking_message())
             
             model = self.chat_model_var.get()
             if model == "Sin modelos" or model == "Cargando..." or not self.ollama_connected:
@@ -291,9 +297,24 @@ Si el usuario pregunta sobre acciones específicas, proporciona comandos concret
         for widget in self.chat_container.winfo_children():
             if isinstance(widget, ctk.CTkFrame):
                 for child in widget.winfo_children():
-                    if isinstance(child, ctk.CTkLabel) and "Pensando..." in child.cget("text"):
-                        widget.destroy()
-                        break
+                    if isinstance(child, ctk.CTkTextbox):
+                        try:
+                            text = child.get("1.0", "end-1c")
+                            if "Pensando" in text:
+                                widget.destroy()
+                                break
+                        except:
+                            pass
+    
+    def add_thinking_message(self):
+        msg_frame = ctk.CTkFrame(self.chat_container, fg_color=self.theme['bg_sec'], corner_radius=10)
+        msg_frame.pack(fill="x", pady=4, padx=3, anchor="w")
+        
+        label = ctk.CTkLabel(msg_frame, text="⏳ Pensando...", font=("Segoe UI", 11),
+                            text_color=self.theme['text_sec'])
+        label.pack(padx=10, pady=8)
+        
+        self.chat_scroll._parent_canvas.yview_moveto(1.0)
     
     def stop_audio(self):
         try:

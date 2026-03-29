@@ -20,6 +20,7 @@ class ChatPanel:
         self.tts_rate = app_ref.tts_rate
         self.tts_volume = app_ref.tts_volume
         self.audio_playing = False
+        self.stop_audio_flag = threading.Event()
         
         self.ollama_connected = False
         self.ollama_models = []
@@ -291,14 +292,21 @@ Si el usuario pregunta sobre acciones específicas, proporciona comandos concret
     
     def stop_audio(self):
         try:
+            self.stop_audio_flag.set()
             import pygame
             if pygame.mixer.get_init():
-                pygame.mixer.music.stop()
+                try:
+                    pygame.mixer.music.stop()
+                except:
+                    pass
                 pygame.mixer.quit()
             self.audio_playing = False
-            self.stop_audio_btn.configure(state="disabled")
+            self.stop_audio_flag.clear()
+            if self.stop_audio_btn:
+                self.stop_audio_btn.configure(state="disabled")
         except Exception as e:
             print(f"Stop audio error: {e}")
+            self.audio_playing = False
     
     def speak_text(self, text):
         import re
@@ -346,15 +354,16 @@ Si el usuario pregunta sobre acciones específicas, proporciona comandos concret
                                                rate=self.tts_rate, volume=self.tts_volume)
             await communicate.save(audio_file)
             
-            if os.path.exists(audio_file):
+            if os.path.exists(audio_file) and not self.stop_audio_flag.is_set():
                 pygame.mixer.init()
                 pygame.mixer.music.load(audio_file)
                 pygame.mixer.music.play()
-                while pygame.mixer.music.get_busy():
+                while pygame.mixer.music.get_busy() and not self.stop_audio_flag.is_set():
                     pygame.time.Clock().tick(10)
                 pygame.mixer.quit()
                 try:
-                    os.remove(audio_file)
+                    if os.path.exists(audio_file):
+                        os.remove(audio_file)
                 except:
                     pass
         except Exception as e:

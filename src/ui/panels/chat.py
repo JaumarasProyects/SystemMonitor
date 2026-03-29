@@ -187,10 +187,10 @@ class ChatPanel:
         
         text_widget = ctk.CTkTextbox(msg_frame, font=("Segoe UI", 11),
                                      fg_color="transparent", text_color=self.theme['bg_main'] if is_user else self.theme['text'],
-                                     border_width=0, wrap="word", height=1)
+                                     border_width=0, wrap="word")
         text_widget.insert("1.0", message)
         text_widget.configure(state="disabled")
-        text_widget.pack(padx=10, pady=6, fill="x", expand=True)
+        text_widget.pack(padx=10, pady=6, fill="both", expand=True)
         
         self.chat_scroll._parent_canvas.yview_moveto(1.0)
     

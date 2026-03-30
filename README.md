@@ -57,6 +57,15 @@ SystemMonitor is a comprehensive desktop application that provides real-time sys
 - **Security Analysis**: Vulnerability detection and recommendations
 - Requires Ollama running locally
 
+### 🔒 Security
+- **Hash + VirusTotal**: SHA256 hash calculation and VirusTotal API lookup for running processes
+- **Check All**: Batch verification of all processes with caching and persistent results
+- **Suspicious Processes**: Detection of processes running from temporary or suspicious folders
+- **Firewall & Defender**: Windows Firewall, Windows Defender, UAC, and Secure Boot status with quick-open buttons
+- **Startup Services**: List of automatic startup programs with suspicious keyword highlighting
+- **Admin Users**: View of users with elevated (Administrator) permissions
+- VirusTotal API key configurable in Settings panel
+
 <img width="1192" height="750" alt="Captura de pantalla 2026-03-30 031538" src="https://github.com/user-attachments/assets/39b542d1-eb14-419b-8288-c979ace28aa7" />
 
 ### ⚙️ Configuration
@@ -198,6 +207,7 @@ src/
 │       ├── software.py      # Software list
 │       ├── caches.py        # Cache/cookies manager
 │       ├── analysis.py      # AI analysis
+│       ├── security.py      # Security tools and VirusTotal
 │       └── settings.py      # Configuration
 └── main.py              # Entry point
 ```

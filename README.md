@@ -2,6 +2,9 @@
 
 A modern Windows system monitoring application with AI-powered analysis capabilities. Built with Python and CustomTkinter.
 
+<img width="1197" height="760" alt="Captura de pantalla 2026-03-30 031125" src="https://github.com/user-attachments/assets/e85f5fd7-c02c-4bc1-9bbb-b6e93e05d219" />
+
+
 ## Overview
 
 SystemMonitor is a comprehensive desktop application that provides real-time system monitoring, hardware information, and AI-powered analysis through local LLM models (Ollama). It features a clean, modular architecture and supports dark/light themes.

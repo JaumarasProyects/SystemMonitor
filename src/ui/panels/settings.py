@@ -77,6 +77,33 @@ class SettingsPanel:
                                       command=self.save_api_keys)
         save_api_btn.grid(row=len(api_services), column=1, padx=(0, 15), pady=(10, 5), sticky="ew")
         
+        section_vt = ctk.CTkLabel(main_frame, text="VirusTotal",
+                                    font=("Segoe UI Semibold", 14), text_color=self.theme['primary'])
+        section_vt.pack(anchor="w", pady=(15, 5))
+        
+        vt_info = ctk.CTkLabel(main_frame, text="API Key para analizar hashes de procesos. Obtén una cuenta gratuita en virustotal.com",
+                                font=("Segoe UI", 10), text_color=self.theme['text_sec'])
+        vt_info.pack(anchor="w", pady=(0, 5))
+        
+        vt_frame = ctk.CTkFrame(main_frame, fg_color=self.theme['bg_sec'])
+        vt_frame.pack(fill="x", pady=(0, 15))
+        vt_frame.grid_columnconfigure(1, weight=1)
+        
+        vt_label = ctk.CTkLabel(vt_frame, text="VirusTotal API Key:",
+                                  font=("Segoe UI", 11), text_color=self.theme['text'])
+        vt_label.grid(row=0, column=0, padx=15, pady=12, sticky="w")
+        
+        self.vt_api_key = ctk.StringVar(value=self.app.settings.get('virustotal_api_key', ''))
+        vt_entry = ctk.CTkEntry(vt_frame, font=("Segoe UI", 11),
+                                  textvariable=self.vt_api_key, show="●")
+        vt_entry.grid(row=0, column=1, padx=(0, 15), pady=12, sticky="ew")
+        
+        save_vt_btn = ctk.CTkButton(vt_frame, text="Guardar",
+                                      font=("Segoe UI", 11), height=32,
+                                      fg_color=self.theme['primary'],
+                                      command=self.save_vt_key)
+        save_vt_btn.grid(row=0, column=2, padx=15, pady=12)
+        
         section_theme = ctk.CTkLabel(main_frame, text="Tema",
                                       font=("Segoe UI Semibold", 14), text_color=self.theme['primary'])
         section_theme.pack(anchor="w", pady=(5, 5))
@@ -110,6 +137,9 @@ class SettingsPanel:
     def save_api_keys(self):
         for key, var in self.api_entries.items():
             self.app.api_keys[key].set(var.get())
+    
+    def save_vt_key(self):
+        self.app.settings.set('virustotal_api_key', self.vt_api_key.get())
     
     def apply_theme(self):
         self.app.toggle_theme()

@@ -260,6 +260,8 @@ class ChatPanel:
             context_parts.append("## SOFTWARE:\n" + str(shared_data['software']))
         if shared_data.get('caches'):
             context_parts.append("## CACHÉS:\n" + str(shared_data['caches']))
+        if shared_data.get('security'):
+            context_parts.append("## SEGURIDAD:\n" + str(shared_data['security']))
         if shared_data.get('analysis', {}).get('general'):
             context_parts.append("## ANÁLISIS GENERAL:\n" + str(shared_data['analysis']['general']))
         if shared_data.get('analysis', {}).get('security'):

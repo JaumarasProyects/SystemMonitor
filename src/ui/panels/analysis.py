@@ -121,6 +121,12 @@ class AnalysisPanel:
         return models
     
     def update_models_ui(self):
+        try:
+            if not self.frame.winfo_exists():
+                return
+        except:
+            return
+        
         if self.ollama_models:
             self.model_menu.configure(values=self.ollama_models)
             self.model_var.set(self.ollama_models[-1])

@@ -11,6 +11,7 @@ from ui.panels.network import NetworkPanel
 from ui.panels.ports import PortsPanel
 from ui.panels.software import SoftwarePanel
 from ui.panels.caches import CachesPanel
+from ui.panels.security import SecurityPanel
 from ui.panels.analysis import AnalysisPanel
 from ui.panels.settings import SettingsPanel
 
@@ -24,6 +25,7 @@ __all__ = [
     'PortsPanel',
     'SoftwarePanel',
     'CachesPanel',
+    'SecurityPanel',
     'AnalysisPanel',
     'SettingsPanel',
 ]

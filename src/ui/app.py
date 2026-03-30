@@ -15,7 +15,7 @@ from services.tts_service import TTSService
 from ui.panels import (
     DashboardPanel, ChatPanel, SystemPanel, MemoryPanel,
     ProcessesPanel, NetworkPanel, PortsPanel, SoftwarePanel,
-    CachesPanel, AnalysisPanel, SettingsPanel
+    CachesPanel, SecurityPanel, AnalysisPanel, SettingsPanel
 )
 
 
@@ -54,6 +54,7 @@ class SystemMonitorApp(ctk.CTk):
             'ports': None,
             'software': None,
             'caches': None,
+            'security': None,
             'analysis': {'general': None, 'security': None}
         }
         
@@ -163,6 +164,7 @@ class SystemMonitorApp(ctk.CTk):
             ("🔌", "Puertos", "ports"),
             ("📦", "Software", "software"),
             ("🗑️", "Cachés y Cookies", "caches"),
+            ("🔒", "Seguridad", "security"),
             ("🤖", "Análisis IA", "analysis"),
             ("⚙️", "Configuración", "settings"),
         ]
@@ -220,7 +222,7 @@ class SystemMonitorApp(ctk.CTk):
         panel_map = {
             'dashboard': 0, 'system': 1, 'memory': 2, 'processes': 3,
             'network': 4, 'ports': 5, 'software': 6, 'caches': 7,
-            'analysis': 8, 'settings': 9
+            'security': 8, 'analysis': 9, 'settings': 10
         }
         
         if panel_id in panel_map:
@@ -243,7 +245,7 @@ class SystemMonitorApp(ctk.CTk):
     def create_panel(self, panel_id):
         theme = self.theme_manager.theme
         
-        panels_with_system_info = {'dashboard', 'system', 'memory', 'processes', 'network', 'ports', 'software', 'caches', 'analysis'}
+        panels_with_system_info = {'dashboard', 'system', 'memory', 'processes', 'network', 'ports', 'software', 'caches', 'security', 'analysis'}
         
         panel_classes = {
             'dashboard': DashboardPanel,
@@ -254,6 +256,7 @@ class SystemMonitorApp(ctk.CTk):
             'ports': PortsPanel,
             'software': SoftwarePanel,
             'caches': CachesPanel,
+            'security': SecurityPanel,
             'analysis': AnalysisPanel,
             'settings': SettingsPanel,
         }
@@ -320,7 +323,7 @@ class SystemMonitorApp(ctk.CTk):
         panel_map = {
             'dashboard': 0, 'system': 1, 'memory': 2, 'processes': 3,
             'network': 4, 'ports': 5, 'software': 6, 'caches': 7,
-            'analysis': 8, 'settings': 9
+            'security': 8, 'analysis': 9, 'settings': 10
         }
         
         if self.current_panel and self.current_panel in panel_map:

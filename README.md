@@ -56,6 +56,7 @@ SystemMonitor is a comprehensive desktop application that provides real-time sys
 - **General Analysis**: System health assessment via Ollama
 - **Security Analysis**: Vulnerability detection and recommendations
 - Requires Ollama running locally
+<img width="1192" height="750" alt="Captura de pantalla 2026-03-30 031538" src="https://github.com/user-attachments/assets/39b542d1-eb14-419b-8288-c979ace28aa7" />
 
 ### 🔒 Security
 - **Hash + VirusTotal**: SHA256 hash calculation and VirusTotal API lookup for running processes
@@ -66,7 +67,9 @@ SystemMonitor is a comprehensive desktop application that provides real-time sys
 - **Admin Users**: View of users with elevated (Administrator) permissions
 - VirusTotal API key configurable in Settings panel
 
-<img width="1192" height="750" alt="Captura de pantalla 2026-03-30 031538" src="https://github.com/user-attachments/assets/39b542d1-eb14-419b-8288-c979ace28aa7" />
+<img width="1194" height="783" alt="Captura de pantalla 2026-03-30 231754" src="https://github.com/user-attachments/assets/adf67a8c-dffe-473b-8cd0-b3dddc5a5986" />
+
+
 
 ### ⚙️ Configuration
 - LLM provider selection (Ollama, OpenAI, DeepSeek, Anthropic, etc.)
